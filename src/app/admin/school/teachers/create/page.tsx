@@ -12,6 +12,7 @@ export default async function CreateTeacherPage() {
   if (!schoolId) redirect("/admin/dashboard");
 
   const school = await prisma.school.findUnique({ where: { schoolId }, select: { schoolName: true } });
+  if (!school) redirect("/admin/dashboard");
 
   return <CreateTeacherForm schoolId={schoolId} schoolName={school.schoolName} />;
 }

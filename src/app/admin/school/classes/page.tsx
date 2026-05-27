@@ -9,17 +9,18 @@ import { redirect } from "next/navigation";
 
 export default async function ClassesPage() {
   const session = await auth();
+  const userId = session?.user?.id;
   const role = session?.user?.role;
-  if (role !== "school_admin" && role !== "teacher") redirect("/admin/dashboard");
+  if (!userId || (role !== "school_admin" && role !== "teacher")) redirect("/admin/dashboard");
 
   let schoolId: string | null = null;
 
   if (role === "school_admin") {
-    const admin = await prisma.user.findUnique({ where: { userId: session.user.id } });
+    const admin = await prisma.user.findUnique({ where: { userId } });
     schoolId = admin?.adminSchoolId ?? null;
   } else if (role === "teacher") {
     const ts = await prisma.teacherSchool.findFirst({
-      where: { teacherId: session.user.id },
+      where: { teacherId: userId },
       select: { schoolId: true },
     });
     schoolId = ts?.schoolId ?? null;
