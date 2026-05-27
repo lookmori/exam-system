@@ -1,0 +1,168 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model School {
+  schoolId   String   @id @default(cuid())
+  schoolName String
+  status     String   @default("active") // active | disabled
+  createdAt  DateTime @default(now()) @map("create_time")
+  updatedAt  DateTime @updatedAt @map("update_time")
+
+  classes        Class[]
+  questions      Question[]
+  examPapers     ExamPaper[]
+  teacherSchools TeacherSchool[]
+  users          User[]
+
+  @@map("school")
+}
+
+model User {
+  userId    String   @id @default(cuid())
+  username  String   @unique
+  name      String?
+  password  String
+  role      String // super_admin | school_admin | teacher | student
+  status    String   @default("active") // active | disabled
+  createdAt DateTime @default(now()) @map("create_time")
+  updatedAt DateTime @updatedAt @map("update_time")
+
+  // 学生归属（仅学生角色有值）
+  schoolId String? @map("school_id")
+  classId  String? @map("class_id")
+  school   School? @relation(fields: [schoolId], references: [schoolId], onDelete: SetNull)
+  class    Class?  @relation(fields: [classId], references: [classId], onDelete: SetNull)
+
+  // 学校管理员归属（仅校管角色有值）
+  adminSchoolId String? @map("admin_school_id")
+
+  // 教师跨校任职关联
+  teacherSchools TeacherSchool[]
+
+  // 创建的题目
+  questions   Question[]
+  // 创建的试卷
+  examPapers  ExamPaper[]
+  // 考试记录
+  examRecords ExamRecord[]
+
+  @@map("user")
+}
+
+model Class {
+  classId   String   @id @default(cuid())
+  schoolId  String   @map("school_id")
+  className String   @map("class_name")
+  createdAt DateTime @default(now()) @map("create_time")
+  updatedAt DateTime @updatedAt @map("update_time")
+
+  school School @relation(fields: [schoolId], references: [schoolId], onDelete: Cascade)
+  users  User[]
+
+  @@map("class")
+}
+
+model Question {
+  questionId    String   @id @default(cuid())
+  schoolId      String   @map("school_id")
+  teacherId     String   @map("teacher_id")
+  questionType  String   @map("question_type") // single_choice | multi_choice | true_false | fill_blank | short_answer | essay
+  title         String // HTML content
+  titleImgs     String[] @default([]) @map("title_imgs")
+  optionContent Json?    @map("option_content") // { "A": "text", "B": "text" }
+  optionImgs    Json?    @default("{}") @map("option_imgs") // { "A": ["url1"], "B": [] }
+  score         Int      @default(1)
+  answer        String // JSON: "B" or "[\"B\",\"C\"]" or "true/false" or text
+  analysis      String? // HTML content
+  analysisImgs  String[] @default([]) @map("analysis_imgs")
+  status        String   @default("active") // active | disabled
+  createdAt     DateTime @default(now()) @map("create_time")
+  updatedAt     DateTime @updatedAt @map("update_time")
+
+  school         School          @relation(fields: [schoolId], references: [schoolId], onDelete: Cascade)
+  teacher        User            @relation(fields: [teacherId], references: [userId], onDelete: Cascade)
+  paperQuestions PaperQuestion[]
+
+  @@map("question")
+}
+
+model ExamPaper {
+  paperId      String   @id @default(cuid())
+  paperTitle   String   @map("paper_title")
+  schoolId     String   @map("school_id")
+  teacherId    String   @map("teacher_id")
+  startTime    DateTime @map("start_time")
+  endTime      DateTime @map("end_time")
+  examDuration Int      @map("exam_duration") // 分钟
+  isPublic     Boolean  @default(false) @map("is_public")
+  classIds     String[] @map("class_ids")
+  totalScore   Int      @default(0) @map("total_score")
+  passScore    Int?     @map("pass_score")
+  isRetry      Boolean  @default(false) @map("is_retry")
+  paperStatus  String   @default("draft") @map("paper_status") // draft | published | ended | removed
+  createdAt    DateTime @default(now()) @map("create_time")
+  updatedAt    DateTime @updatedAt @map("update_time")
+
+  school         School          @relation(fields: [schoolId], references: [schoolId], onDelete: Cascade)
+  teacher        User            @relation(fields: [teacherId], references: [userId], onDelete: Cascade)
+  paperQuestions PaperQuestion[]
+  examRecords    ExamRecord[]
+
+  @@map("exam_paper")
+}
+
+model PaperQuestion {
+  id         String @id @default(cuid())
+  paperId    String @map("paper_id")
+  questionId String @map("question_id")
+  sort       Int    @default(0)
+  score      Int    @default(1)
+
+  paper    ExamPaper @relation(fields: [paperId], references: [paperId], onDelete: Cascade)
+  question Question  @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
+
+  @@map("paper_question")
+}
+
+model ExamRecord {
+  recordId      String    @id @default(cuid())
+  paperId       String    @map("paper_id")
+  studentId     String    @map("student_id")
+  startTime     DateTime  @map("start_time")
+  submitTime    DateTime? @map("submit_time")
+  answerContent Json      @default("{}") @map("answer_content") // { "questionId": answer }
+  answerImgs      Json?     @default("{}") @map("answer_imgs") // { "questionId": ["url1"] }
+  score           Int? // 总分（阅卷完成后填入）
+  status          String    @default("in_progress") // in_progress | submitted | graded
+  gradingComments     Json?     @default("{}") @map("grading_comments") // { "questionId": "comment text" }
+  gradingCommentImgs  Json?     @default("{}") @map("grading_comment_imgs") // { "questionId": ["url1"] }
+  gradedAt            DateTime? @map("graded_at")
+  violations          Json      @default("[]") @map("violations") // [{ type: string, timestamp: number }]
+  createdAt       DateTime  @default(now()) @map("create_time")
+  updatedAt       DateTime  @updatedAt @map("update_time")
+
+  paper   ExamPaper @relation(fields: [paperId], references: [paperId], onDelete: Cascade)
+  student User      @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+
+  @@map("exam_record")
+}
+
+model TeacherSchool {
+  id        String   @id @default(cuid())
+  teacherId String   @map("teacher_id")
+  schoolId  String   @map("school_id")
+  createdAt DateTime @default(now()) @map("create_time")
+
+  teacher User   @relation(fields: [teacherId], references: [userId], onDelete: Cascade)
+  school  School @relation(fields: [schoolId], references: [schoolId], onDelete: Cascade)
+
+  @@unique([teacherId, schoolId])
+  @@map("teacher_school")
+}

@@ -1,26 +1,138 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-sans: "Inter", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* "奇幻课堂" warm & playful palette */
+  --color-fun-coral: #ff6b6b;
+  --color-fun-coral-light: #ffe0e0;
+  --color-fun-peach: #ffa94d;
+  --color-fun-peach-light: #fff0e0;
+  --color-fun-sunny: #ffd43b;
+  --color-fun-sunny-light: #fff9db;
+  --color-fun-mint: #51cf66;
+  --color-fun-mint-light: #d8f5e0;
+  --color-fun-sky: #4dabf7;
+  --color-fun-sky-light: #ddf0ff;
+  --color-fun-lavender: #9775fa;
+  --color-fun-lavender-light: #ece5ff;
+  --color-fun-pink: #f783ac;
+  --color-fun-pink-light: #ffe3ec;
+  --color-fun-teal: #38d9a9;
+  --color-fun-teal-light: #d3f9ed;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg, #fef9f0 0%, #fff5f5 30%, #f8f4ff 60%, #f0f7ff 100%);
+  background-attachment: fixed;
+  color: #4a4a5a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fun scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ffa94d, #ff6b6b, #9775fa);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff8c2d, #ff5252, #845ef7);
+}
+
+/* ===== Animations ===== */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes zoom-in-95 {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes zoom-out-95 {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.95); opacity: 0; }
+}
+@keyframes slide-in-from-top-4 {
+  from { transform: translateY(-16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes slide-in-from-top {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+@keyframes pulse-warning {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Playful new animations */
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
+  60% { transform: translateY(-2px); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-8px) rotate(1deg); }
+  66% { transform: translateY(-3px) rotate(-1deg); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+@keyframes sparkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.9); }
+}
+@keyframes rainbow-shift {
+  0%   { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+@keyframes pop-in {
+  0% { transform: scale(0); opacity: 0; }
+  80% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Utility classes for animations */
+.animate-bounce-gentle { animation: bounce-gentle 2s ease-in-out infinite; }
+.animate-float { animation: float 3s ease-in-out infinite; }
+.animate-wiggle { animation: wiggle 0.5s ease-in-out; }
+.animate-sparkle { animation: sparkle 1.5s ease-in-out infinite; }
+.animate-pop-in { animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.animate-slide-up { animation: slide-up 0.5s ease-out; }
+.animate-gradient-flow {
+  background-size: 200% 200%;
+  animation: gradient-flow 4s ease infinite;
+}
+
+/* Decorative gradient blobs */
+.gradient-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  opacity: 0.3;
+  pointer-events: none;
 }
